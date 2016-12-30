@@ -28,6 +28,7 @@ from decimal import Decimal
 
 import unicodedata
 
+
 def load_stream(input_stream):
     for line in input_stream:
         clean_line = line.strip()
@@ -39,22 +40,23 @@ def load_stream(input_stream):
         if clean_line:
             yield clean_line
 
-def run(input_stream, options):
+
+def run(input_stream, options, encoding='utf8'):
     data = defaultdict(int)
     total = 0
     for row in input_stream:
         if options.agg_key_value:
             kv = row.rstrip().rsplit(None, 1)
             value = int(kv[1])
-            data[unicode(kv[0].decode('utf-8'))] += value
+            data[kv[0].decode(encoding)] += value
             total += value
         elif options.agg_value_key:
             kv = row.lstrip().split(None, 1)
             value = int(kv[0])
-            data[unicode(kv[1].decode('utf-8'))] += value
+            data[kv[1].decode(encoding)] += value
             total += value
         else:
-            row = unicode(row.decode('utf-8'))
+            row = row.decode(encoding)
             data[row] += 1
             total += 1
 
@@ -70,15 +72,15 @@ def run(input_stream, options):
     scale = int(math.ceil(float(max_value) / value_characters))
     scale = max(1, scale)
 
-    header = unicode("# each " + options.dot + " represents a count of %d. total %d" % (scale, total)).encode('utf-8')
+    header = unicode("# each " + options.dot + " represents a count of %d. total %d" % (scale, total)).encode(encoding)
     print header
 
     if options.sort_values:
-        data = [[value, key] for key, value in data.items()]
+        data = [[v, k] for k, v in data.items()]
         data.sort(key=lambda x: x[0], reverse=options.reverse_sort)
     else:
         # sort by keys
-        data = [[value, key] for key, value in data.items()]
+        data = [[v, k] for k, v in data.items()]
         if options.numeric_sort:
             # keys could be numeric too
             data.sort(key=lambda x: (Decimal(x[1])), reverse=options.reverse_sort)
@@ -110,19 +112,19 @@ if __name__ == "__main__":
     parser = OptionParser()
     parser.usage = "cat data | %prog [options]"
     parser.add_option("-a", "--agg", dest="agg_value_key", default=False, action="store_true",
-                        help="Two column input format, space seperated with value<space>key")
+                      help="Two column input format, space seperated with value<space>key")
     parser.add_option("-A", "--agg-key-value", dest="agg_key_value", default=False, action="store_true",
-                        help="Two column input format, space seperated with key<space>value")
+                      help="Two column input format, space seperated with key<space>value")
     parser.add_option("-k", "--sort-keys", dest="sort_keys", default=True, action="store_true",
-                        help="sort by the key [default]")
+                      help="sort by the key [default]")
     parser.add_option("-v", "--sort-values", dest="sort_values", default=False, action="store_true",
-                        help="sort by the frequence")
+                      help="sort by the frequence")
     parser.add_option("-r", "--reverse-sort", dest="reverse_sort", default=False, action="store_true",
-                        help="reverse the sort")
+                      help="reverse the sort")
     parser.add_option("-n", "--numeric-sort", dest="numeric_sort", default=False, action="store_true",
-                        help="sort keys by numeric sequencing")
+                      help="sort keys by numeric sequencing")
     parser.add_option("-p", "--percentage", dest="percentage", default=False, action="store_true",
-                        help="List percentage for each bar")
+                      help="List percentage for each bar")
     parser.add_option("--dot", dest="dot", default=u'∎', help="Dot representation")
 
     (options, args) = parser.parse_args()
