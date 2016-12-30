@@ -97,7 +97,7 @@ def run(input_stream, options, encoding='utf8'):
         cum = 0
         for c, l in name:
             cum += l
-            if cum <= max_length:
+            if cum < max_length:
                 title += c
             else:
                 cum -= l
