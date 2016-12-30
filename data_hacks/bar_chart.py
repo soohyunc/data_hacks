@@ -89,7 +89,7 @@ def run(input_stream, options, encoding='utf8'):
 
     str_format = "%s%s [%6d] %s%s"
     percentage = ""
-    for value, key in data:
+    for value, key in data[:int(options.lines)]:
         if options.percentage:
             percentage = " (%0.2f%%)" % (100 * Decimal(value) / Decimal(total))
         name = [(c, len(c) + sum(1 for d in c if unicodedata.east_asian_width(d) == 'W')) for c in key]
@@ -124,6 +124,8 @@ if __name__ == "__main__":
     parser.add_option("-n", "--numeric-sort", dest="numeric_sort", default=False, action="store_true",
                       help="sort keys by numeric sequencing")
     parser.add_option("-p", "--percentage", dest="percentage", default=False, action="store_true",
+                      help="List percentage for each bar")
+    parser.add_option("-l", "--lines", dest="lines", default=None,
                       help="List percentage for each bar")
     parser.add_option("--dot", dest="dot", default=u'∎', help="Dot representation")
 
