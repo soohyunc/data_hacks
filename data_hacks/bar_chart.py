@@ -25,8 +25,10 @@ import math
 from collections import defaultdict
 from optparse import OptionParser
 from decimal import Decimal
-
 import unicodedata
+
+
+KEY_MAX_LENGTH = 50
 
 
 def load_stream(input_stream):
@@ -44,15 +46,20 @@ def load_stream(input_stream):
 def run(input_stream, options, encoding='utf8'):
     data = defaultdict(int)
     total = 0
+    type_ = float
     for row in input_stream:
         if options.agg_key_value:
             kv = row.rstrip().rsplit(None, 1)
-            value = int(kv[1])
+            if kv[1].isdigit():
+                type_ = int
+            value = type_(kv[1])
             data[kv[0].decode(encoding)] += value
             total += value
         elif options.agg_value_key:
             kv = row.lstrip().split(None, 1)
-            value = int(kv[0])
+            if kv[1].isdigit():
+                type_ = int
+            value = type_(kv[0])
             data[kv[1].decode(encoding)] += value
             total += value
         else:
@@ -64,16 +71,14 @@ def run(input_stream, options, encoding='utf8'):
         print "Error: no data"
         sys.exit(1)
 
-    lens = [len(key) + sum(1 for c in key if unicodedata.east_asian_width(c) == 'W') for key in data.keys()]
-    max_length = max(lens)
-    max_length = min(max_length, 50)
-    value_characters = 80 - max_length
+    max_length = max([len(key) for key in data.keys()])
+    max_length = min(max_length, KEY_MAX_LENGTH)
+    value_characters = KEY_MAX_LENGTH + 30 - max_length
     max_value = max(data.values())
     scale = int(math.ceil(float(max_value) / value_characters))
     scale = max(1, scale)
 
-    header = unicode("# each " + options.dot + " represents a count of %d. total %d" % (scale, total)).encode(encoding)
-    print header
+    print ("# each " + options.dot + " represents a count of %d. total %d" % (scale, total)).encode(encoding)
 
     if options.sort_values:
         data = [[v, k] for k, v in data.items()]
@@ -87,9 +92,12 @@ def run(input_stream, options, encoding='utf8'):
         else:
             data.sort(key=lambda x: x[1], reverse=options.reverse_sort)
 
-    str_format = "%s%s [%6d] %s%s"
     percentage = ""
-    for value, key in data[:int(options.lines)]:
+    if options.lines:
+        nlines = int(options.lines)
+    else:
+        nlines = None
+    for value, key in data[:nlines]:
         if options.percentage:
             percentage = " (%0.2f%%)" % (100 * Decimal(value) / Decimal(total))
         name = [(c, len(c) + sum(1 for d in c if unicodedata.east_asian_width(d) == 'W')) for c in key]
@@ -105,8 +113,14 @@ def run(input_stream, options, encoding='utf8'):
 
         pad = u' ' * (max_length - cum - 1)
 
-        formatted_string = str_format % (pad, title, value, (value / scale) * options.dot, percentage)
-        print formatted_string.encode('utf-8')
+        if isinstance(value, int):
+            formatted_string = "%s%s [%6d] %s%s"
+        else:
+            formatted_string = "%s%s [%6.2f] %s%s"
+        print (formatted_string %
+               (pad, title[:max_length], value, int(value / scale) * options.dot, percentage))\
+            .encode(encoding)
+
 
 if __name__ == "__main__":
     parser = OptionParser()
