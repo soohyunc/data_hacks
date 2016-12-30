@@ -28,9 +28,6 @@ from decimal import Decimal
 import unicodedata
 
 
-KEY_MAX_LENGTH = 50
-
-
 def load_stream(input_stream):
     for line in input_stream:
         clean_line = line.strip()
@@ -72,8 +69,8 @@ def run(input_stream, options, encoding='utf8'):
         sys.exit(1)
 
     max_length = max([len(key) for key in data.keys()])
-    max_length = min(max_length, KEY_MAX_LENGTH)
-    value_characters = KEY_MAX_LENGTH + 30 - max_length
+    max_length = min(max_length, int(options.max_key_length))
+    value_characters = int(options.max_key_length) + 30 - max_length
     max_value = max(data.values())
     scale = int(math.ceil(float(max_value) / value_characters))
     scale = max(1, scale)
@@ -105,13 +102,12 @@ def run(input_stream, options, encoding='utf8'):
         cum = 0
         for c, l in name:
             cum += l
-            if cum < max_length:
+            if cum <= max_length:
                 title += c
             else:
-                cum -= l
                 break
 
-        pad = u' ' * (max_length - cum - 1)
+        pad = u' ' * (max_length - cum)
 
         if isinstance(value, int):
             formatted_string = "%s%s [%6d] %s%s"
@@ -140,7 +136,9 @@ if __name__ == "__main__":
     parser.add_option("-p", "--percentage", dest="percentage", default=False, action="store_true",
                       help="List percentage for each bar")
     parser.add_option("-l", "--lines", dest="lines", default=None,
-                      help="List percentage for each bar")
+                      help="Maximum number of lines")
+    parser.add_option("-m", "--max-key-length", dest="max_key_length", default=50,
+                      help="Maximum length of key")
     parser.add_option("--dot", dest="dot", default=u'∎', help="Dot representation")
 
     (options, args) = parser.parse_args()
