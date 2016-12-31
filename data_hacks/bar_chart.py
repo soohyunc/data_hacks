@@ -54,7 +54,7 @@ def run(input_stream, options, encoding='utf8'):
             total += value
         elif options.agg_value_key:
             kv = row.lstrip().split(None, 1)
-            if kv[1].isdigit():
+            if kv[0].isdigit():
                 type_ = int
             value = type_(kv[0])
             data[kv[1].decode(encoding)] += value
