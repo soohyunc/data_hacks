@@ -3,13 +3,26 @@ data_hacks
 
 Command line utilities for data analysis
 
-Installing: `pip install data_hacks`
-
-Installing from github `pip install -e git://github.com/bitly/data_hacks.git#egg=data_hacks`
-
-Installing from source `python setup.py install`
+- Installing from github `pip install git+https://github.com/e9t/data_hacks.git`
+- Installing from source `python setup.py install`
 
 data_hacks are friendly. Ask them for usage information with `--help`
+
+bar_chart.py
+------------
+
+Generate an ascii bar chart for input data (this is like a visualization of `uniq -c`)
+
+    $ cat data | bar_chart.py
+    # each ∎ represents a count of 1. total 63
+    14:40 [    49] ∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+    14:41 [    14] ∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+
+`bar_chart.py` and `histogram.py` also support ingesting pre-aggregated values. Simply provide a two column input of `count<whitespace>value` for `-a` or `value<whitespace>count` for `-A`:
+
+    $ cat data | uniq -c | bar_chart.py -a
+
+This is very convenient if you pull data out, say Hadoop or MySQL already aggregated.
 
 histogram.py
 ------------
@@ -62,7 +75,7 @@ This is useful for finding the 95% response time from access logs.
 Example (assuming response time is the last column in your access log):
 
     $ cat access.log | awk '{print $NF}' | ninety_five_percent.py
-    
+
 sample.py
 ---------
 
@@ -80,19 +93,3 @@ Pass through data for a specified amount of time
 Example:
 
     $ tail -f access.log | run_for.py 10s | post_process.py
-
-bar_chart.py
-------------
-
-Generate an ascii bar chart for input data (this is like a visualization of `uniq -c`)
-
-    $ cat data | bar_chart.py
-    # each ∎ represents a count of 1. total 63
-    14:40 [    49] ∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
-    14:41 [    14] ∎∎∎∎∎∎∎∎∎∎∎∎∎∎
-
-`bar_chart.py` and `histogram.py` also support ingesting pre-aggregated values. Simply provide a two column input of `count<whitespace>value` for `-a` or `value<whitespace>count` for `-A`:
-
-    $ cat data | uniq -c | bar_chart.py -a
-
-This is very convenient if you pull data out, say Hadoop or MySQL already aggregated.
