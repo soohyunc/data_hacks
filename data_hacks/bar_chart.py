@@ -139,7 +139,7 @@ if __name__ == "__main__":
                       help="Maximum number of lines")
     parser.add_option("-m", "--max-key-length", dest="max_key_length", default=50,
                       help="Maximum length of key")
-    parser.add_option("--dot", dest="dot", default=u'∎', help="Dot representation")
+    parser.add_option("--dot", dest="dot", default='∎', help="Dot representation")
 
     (options, args) = parser.parse_args()
 
